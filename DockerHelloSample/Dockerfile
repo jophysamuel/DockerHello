@@ -1,20 +1,16 @@
-FROM microsoft/dotnet:2.1-aspnetcore-runtime AS base
+FROM microsoft/dotnet:latest
+
+ENV http_proxy="http://jophy.samuel:Pass@123456@proxy.phila.gov:8080"
+ENV https_proxy="http://jophy.samuel:Pass@123456@proxy.phila.gov:8080"
+
+COPY . /app
+
 WORKDIR /app
-EXPOSE 25141
-EXPOSE 44335
 
-FROM microsoft/dotnet:2.1-sdk AS build
-WORKDIR /src
-COPY ["DockerHelloSample/DockerHelloSample.csproj", "DockerHelloSample/"]
-RUN dotnet restore "DockerHelloSample/DockerHelloSample.csproj"
-COPY . .
-WORKDIR "/src/DockerHelloSample"
-RUN dotnet build "DockerHelloSample.csproj" -c Release -o /app
+RUN ["dotnet", "restore"]
 
-FROM build AS publish
-RUN dotnet publish "DockerHelloSample.csproj" -c Release -o /app
+RUN ["dotnet", "build"]
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "DockerHelloSample.dll"]
+EXPOSE 5000/tcp
+
+ENTRYPOINT ["dotnet", "run", "--server.urls", "http://0.0.0.0:5000"]
